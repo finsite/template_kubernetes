@@ -9,7 +9,6 @@ on:
       - main  # Trigger CI/CD on pull requests to the main branch
 
 jobs:
-  # Job to build and push the Docker image to GitHub Container Registry (GHCR)
   build:
     runs-on: ubuntu-latest
     steps:
@@ -31,7 +30,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}  # Using GitHub's token for authentication
+          password: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for authentication
 
       - name: Build Docker image
         run: |
@@ -41,7 +40,6 @@ jobs:
         run: |
           docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
 
-  # Job to deploy to Kubernetes using Helm
   deploy:
     runs-on: ubuntu-latest
     needs: build
