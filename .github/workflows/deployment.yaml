@@ -1,50 +1,39 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-deployment  # Will use Helm to replace with release name
+  name: my-deployment  # Set a name for the deployment
   labels:
-    app: {{ .Chart.Name }}
+    app: my-app
 spec:
-  replicas: {{ .Values.replicaCount }}  # Customize replica count in values.yaml
+  replicas: 3  # Set the number of replicas for scaling
   selector:
     matchLabels:
-      app: {{ .Chart.Name }}
+      app: my-app
   template:
     metadata:
       labels:
-        app: {{ .Chart.Name }}
+        app: my-app
     spec:
       containers:
-        - name: {{ .Chart.Name }}
-          image: ghcr.io/{{ .Release.Name }}/{{ .Chart.Name }}:{{ .Values.image.tag }}  # GitHub Container Registry image
-          imagePullPolicy: {{ .Values.image.pullPolicy }}  # Image pull policy (default: Always)
+        - name: my-app-container
+          image: ghcr.io/my-org/my-repo:latest  # Replace with the actual image path
+          imagePullPolicy: Always  # Image pull policy (Always, IfNotPresent, Never)
           ports:
-            - containerPort: 80  # Adjust if your app exposes a different port
+            - containerPort: 80  # Replace with the port your app listens on
           resources:
             requests:
-              memory: {{ .Values.resources.requests.memory }}
-              cpu: {{ .Values.resources.requests.cpu }}
+              memory: "64Mi"
+              cpu: "250m"
             limits:
-              memory: {{ .Values.resources.limits.memory }}
-              cpu: {{ .Values.resources.limits.cpu }}
+              memory: "128Mi"
+              cpu: "500m"
           env:
-            - name: ENV_VAR_EXAMPLE  # Customize environment variables as needed
-              value: "value"
+            - name: ENV_VAR_EXAMPLE  # Customize with your environment variables
+              value: "example-value"
           volumeMounts:
             - name: my-volume
-              mountPath: /mnt/data  # Adjust if necessary
+              mountPath: /mnt/data  # Customize mount path
       volumes:
         - name: my-volume
-          emptyDir: {}  # You can change this to use persistent storage if needed
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Release.Name }}-service
-spec:
-  selector:
-    app: {{ .Chart.Name }}
-  ports:
-    - port: 80  # Adjust port if your app listens on a different one
-      targetPort: 80
-  type: ClusterIP  # You can change this to LoadBalancer if external access is needed
+          emptyDir: {}  # Use emptyDir for ephemeral storage (customize as needed)
+
