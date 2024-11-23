@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-deployment
+  name: {{ .Release.Name }}-deployment  # Will use Helm to replace with release name
   labels:
     app: {{ .Chart.Name }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount }}  # Customize replica count in values.yaml
   selector:
     matchLabels:
       app: {{ .Chart.Name }}
@@ -16,21 +16,35 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: ghcr.io/{{ .Release.Name }}/{{ .Chart.Name }}:{{ .Values.image.tag }}  # GitHub Container Registry image
+          imagePullPolicy: {{ .Values.image.pullPolicy }}  # Image pull policy (default: Always)
           ports:
-            - containerPort: 80
-          envFrom:
-            - configMapRef:
-                name: {{ .Release.Name }}-config
-            - secretRef:
-                name: {{ .Release.Name }}-secret
+            - containerPort: 80  # Adjust if your app exposes a different port
           resources:
             requests:
-              memory: "64Mi"
-              cpu: "250m"
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
             limits:
-              memory: "128Mi"
-              cpu: "500m"
-      imagePullSecrets:
-        - name: {{ .Values.image.pullSecret | default "default-secret" }}
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
+          env:
+            - name: ENV_VAR_EXAMPLE  # Customize environment variables as needed
+              value: "value"
+          volumeMounts:
+            - name: my-volume
+              mountPath: /mnt/data  # Adjust if necessary
+      volumes:
+        - name: my-volume
+          emptyDir: {}  # You can change this to use persistent storage if needed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-service
+spec:
+  selector:
+    app: {{ .Chart.Name }}
+  ports:
+    - port: 80  # Adjust port if your app listens on a different one
+      targetPort: 80
+  type: ClusterIP  # You can change this to LoadBalancer if external access is needed
